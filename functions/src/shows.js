@@ -1,5 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
+import jwt from "jsonwebtoken"
 import { db } from "./dbConnect.js";
+import { secretKey } from "../secrets.js";
 
 const collection = db.collection("shows");
 
@@ -10,6 +12,17 @@ res.send(shows)
 }
 
 export async function addShow(req, res) {
+    const token = req.headers.authentication
+    if(!token ) {
+        res.status(401).send ({message: "Unathorized. A valid token is required"})
+        return
+    }
+    const decoded = jwt.verify(token,secretKey)
+    if(!decoded) {
+        res.status(401).send ({message: "Unathorized. A valid token is required"})
+        return
+    }
+
     const {title, poster, seasons} = req.body
     if(!title || !poster || !seasons) {
         res.status(400). send({ message: "Show title, posters, and seasons is required."})
